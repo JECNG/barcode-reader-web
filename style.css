@@ -303,12 +303,6 @@ body {
     justify-content: center;
 }
 
-.modal.show {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
 .modal-content {
     background: var(--bg-card);
     border-radius: 20px;
