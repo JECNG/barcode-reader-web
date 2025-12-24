@@ -72,15 +72,18 @@ body {
     backdrop-filter: blur(10px);
     color: #10b981;
     padding: 16px 20px;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 600;
     z-index: 10;
     min-height: 60px;
     display: flex;
     align-items: center;
+    justify-content: center;
+    text-align: center;
     border-bottom: 2px solid rgba(16, 185, 129, 0.3);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     letter-spacing: 0.5px;
+    word-break: break-all;
 }
 
 .recording-indicator {
