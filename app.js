@@ -739,11 +739,24 @@ class BarcodeReader {
             this.showToast('저장할 바코드가 없습니다', 'error');
             return;
         }
-        document.getElementById('exportModal').classList.add('show');
+        const exportModal = document.getElementById('exportModal');
+        if (exportModal) {
+            exportModal.classList.add('show');
+            // 모달이 확실히 표시되도록 강제
+            exportModal.style.display = 'flex';
+            exportModal.style.zIndex = '10000';
+        } else {
+            console.error('exportModal not found');
+            this.showToast('내보내기 모달을 찾을 수 없습니다', 'error');
+        }
     }
 
     hideExportModal() {
-        document.getElementById('exportModal').classList.remove('show');
+        const exportModal = document.getElementById('exportModal');
+        if (exportModal) {
+            exportModal.classList.remove('show');
+            exportModal.style.display = 'none';
+        }
     }
 
     async exportCsv() {
