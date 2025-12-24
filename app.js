@@ -741,10 +741,25 @@ class BarcodeReader {
         }
         const exportModal = document.getElementById('exportModal');
         if (exportModal) {
+            // 먼저 다른 모달들 숨기기
+            document.querySelectorAll('.modal').forEach(modal => {
+                if (modal !== exportModal) {
+                    modal.classList.remove('show');
+                    modal.style.display = 'none';
+                }
+            });
+            
+            // 내보내기 모달 표시
             exportModal.classList.add('show');
-            // 모달이 확실히 표시되도록 강제
             exportModal.style.display = 'flex';
-            exportModal.style.zIndex = '10000';
+            exportModal.style.zIndex = '99999';
+            exportModal.style.position = 'fixed';
+            exportModal.style.left = '0';
+            exportModal.style.top = '0';
+            exportModal.style.width = '100%';
+            exportModal.style.height = '100%';
+            
+            console.log('Export modal shown:', exportModal);
         } else {
             console.error('exportModal not found');
             this.showToast('내보내기 모달을 찾을 수 없습니다', 'error');
@@ -756,6 +771,7 @@ class BarcodeReader {
         if (exportModal) {
             exportModal.classList.remove('show');
             exportModal.style.display = 'none';
+            exportModal.style.zIndex = '';
         }
     }
 

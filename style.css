@@ -26,11 +26,6 @@ html, body {
     height: 100%;
     overflow: hidden;
     position: fixed;
-    /* 아이폰 Safe Area 지원 */
-    padding-top: env(safe-area-inset-top);
-    padding-bottom: env(safe-area-inset-bottom);
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
     /* 더블 터치 확대 방지 */
     touch-action: pan-x pan-y;
 }
@@ -51,7 +46,12 @@ body {
     background: #000;
     /* 아이폰 Safe Area 고려 */
     min-height: -webkit-fill-available;
-    height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    height: 100vh;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    box-sizing: border-box;
 }
 
 .camera-container {
@@ -100,12 +100,13 @@ body {
     text-align: center;
     border-bottom: 2px solid rgba(16, 185, 129, 0.3);
     word-break: break-all;
-    padding-top: max(12px, env(safe-area-inset-top));
+    /* 아이폰 Safe Area 고려 */
+    padding-top: max(12px, calc(12px + env(safe-area-inset-top)));
+    top: env(safe-area-inset-top);
 }
 
 .recording-indicator {
     position: absolute;
-    top: 60px;
     left: 16px;
     right: 16px;
     background: linear-gradient(135deg, rgba(239, 68, 68, 0.95) 0%, rgba(220, 38, 38, 0.95) 100%);
@@ -121,7 +122,8 @@ body {
     gap: 10px;
     box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4);
     animation: slideDown 0.3s ease-out;
-    top: max(60px, calc(env(safe-area-inset-top) + 50px));
+    /* 아이폰 Safe Area 고려 */
+    top: max(60px, calc(60px + env(safe-area-inset-top)));
 }
 
 .recording-indicator .pulse {
@@ -157,7 +159,6 @@ body {
 /* 우측 상단 버튼 공통 스타일 */
 .btn-top-right {
     position: absolute;
-    top: 12px;
     width: 44px;
     height: 44px;
     border-radius: 50%;
@@ -172,7 +173,8 @@ body {
     z-index: 25;
     transition: all 0.2s;
     padding: 0;
-    top: max(12px, env(safe-area-inset-top));
+    /* 아이폰 Safe Area 고려 */
+    top: max(12px, calc(12px + env(safe-area-inset-top)));
 }
 
 .btn-camera-switch {
@@ -219,7 +221,6 @@ body {
     flex-shrink: 0;
     /* 아이폰 하단 바 영역 고려 */
     padding-bottom: max(20px, calc(16px + env(safe-area-inset-bottom)));
-    margin-bottom: env(safe-area-inset-bottom);
 }
 
 .btn {
@@ -296,9 +297,9 @@ body {
 
 /* 모달 스타일 */
 .modal {
-    display: none;
+    display: none !important;
     position: fixed;
-    z-index: 10000;
+    z-index: 99999 !important;
     left: 0;
     top: 0;
     width: 100%;
@@ -312,13 +313,15 @@ body {
     padding-bottom: env(safe-area-inset-bottom);
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
+    box-sizing: border-box;
 }
 
 .modal.show {
-    display: flex;
+    display: flex !important;
     align-items: center;
     justify-content: center;
 }
+
 
 .modal-content {
     background: var(--bg-card);
@@ -333,6 +336,8 @@ body {
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
     border: 1px solid var(--border);
     animation: modalSlideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    z-index: 100000;
 }
 
 .modal-content.modal-small {
@@ -724,7 +729,6 @@ body {
     .controls {
         padding: 14px 12px;
         padding-bottom: max(18px, calc(14px + env(safe-area-inset-bottom)));
-        margin-bottom: env(safe-area-inset-bottom);
         gap: 8px;
     }
     
@@ -745,10 +749,12 @@ body {
         padding: 10px 14px;
         font-size: 13px;
         min-height: 48px;
+        padding-top: max(10px, calc(10px + env(safe-area-inset-top)));
+        top: env(safe-area-inset-top);
     }
 
     .recording-indicator {
-        top: max(58px, calc(env(safe-area-inset-top) + 48px));
+        top: max(58px, calc(58px + env(safe-area-inset-top)));
         left: 12px;
         right: 12px;
         padding: 10px 14px;
@@ -757,7 +763,7 @@ body {
     }
     
     .btn-top-right {
-        top: max(10px, env(safe-area-inset-top));
+        top: max(10px, calc(10px + env(safe-area-inset-top)));
         width: 40px;
         height: 40px;
     }
@@ -862,7 +868,6 @@ body {
     .controls {
         padding: 12px 10px;
         padding-bottom: max(16px, calc(12px + env(safe-area-inset-bottom)));
-        margin-bottom: env(safe-area-inset-bottom);
         gap: 6px;
     }
     
