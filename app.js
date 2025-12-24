@@ -130,7 +130,7 @@ class BarcodeReader {
                 this.startRecording(groupName);
                 this.hideGroupModal();
             } else {
-                alert('그룹명을 입력하세요');
+                this.showToast('그룹명을 입력하세요', 'error');
             }
         });
 
@@ -150,10 +150,15 @@ class BarcodeReader {
         // 복사 버튼
         document.getElementById('btnCopy').addEventListener('click', () => {
             const text = document.getElementById('barcodeList').value;
+            if (!text || text.trim() === '바코드,그룹명') {
+                this.showToast('복사할 내용이 없습니다', 'error');
+                return;
+            }
             navigator.clipboard.writeText(text).then(() => {
-                alert('복사됨');
+                this.showToast('클립보드에 복사되었습니다', 'success');
             }).catch(err => {
                 console.error('Copy failed:', err);
+                this.showToast('복사에 실패했습니다', 'error');
             });
         });
 
@@ -163,7 +168,7 @@ class BarcodeReader {
                 this.groupBarcodes = [];
                 this.saveGroupBarcodes();
                 this.updateBarcodeList();
-                alert('리스트가 초기화되었습니다');
+                this.showToast('리스트가 초기화되었습니다', 'success');
             }
         });
 
@@ -192,13 +197,27 @@ class BarcodeReader {
                 this.currentGroup = groupName;
                 this.isRecording = true;
                 this.recordedBarcodes.clear();
-                alert(`녹화 시작: ${groupName}`);
+                this.updateRecordingIndicator();
+                this.showToast(`녹화 시작: ${groupName}`, 'success');
             }
         } else {
             this.currentGroup = groupName;
             this.isRecording = true;
             this.recordedBarcodes.clear();
-            alert(`녹화 시작: ${groupName}`);
+            this.updateRecordingIndicator();
+            this.showToast(`녹화 시작: ${groupName}`, 'success');
+        }
+    }
+
+    updateRecordingIndicator() {
+        const indicator = document.getElementById('recordingIndicator');
+        const groupNameEl = document.getElementById('currentGroupName');
+        
+        if (this.isRecording && this.currentGroup) {
+            indicator.style.display = 'flex';
+            groupNameEl.textContent = this.currentGroup;
+        } else {
+            indicator.style.display = 'none';
         }
     }
 
@@ -212,10 +231,12 @@ class BarcodeReader {
                 barcodes: barcodes
             });
             this.saveGroupBarcodes();
+            this.showToast(`${barcodes.length}개의 바코드가 저장되었습니다`, 'success');
         }
         
         this.currentGroup = null;
         this.recordedBarcodes.clear();
+        this.updateRecordingIndicator();
         this.showBarcodeListDialog();
     }
 
@@ -230,15 +251,23 @@ class BarcodeReader {
 
     updateBarcodeList() {
         let csvText = '바코드,그룹명\n';
+        let totalCount = 0;
         this.groupBarcodes.forEach(item => {
             item.barcodes.forEach(barcode => {
                 csvText += `${barcode},${item.group}\n`;
+                totalCount++;
             });
         });
         document.getElementById('barcodeList').value = csvText;
+        document.getElementById('listCount').textContent = `총 ${totalCount}개 항목`;
     }
 
-    exportCsv() {
+    async exportCsv() {
+        if (this.groupBarcodes.length === 0) {
+            this.showToast('저장할 바코드가 없습니다', 'error');
+            return;
+        }
+
         const csvHeader = '\uFEFF바코드,그룹명\n'; // UTF-8 BOM
         let csvBody = '';
         this.groupBarcodes.forEach(item => {
@@ -248,11 +277,41 @@ class BarcodeReader {
         });
         const csv = csvHeader + csvBody;
         
+        const now = new Date();
+        const fileName = `BARCODE_EXPORT_${now.getFullYear().toString().slice(-2)}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}.csv`;
+        
+        // File System Access API 사용 (Chrome/Edge)
+        if ('showSaveFilePicker' in window) {
+            try {
+                const fileHandle = await window.showSaveFilePicker({
+                    suggestedName: fileName,
+                    types: [{
+                        description: 'CSV 파일',
+                        accept: { 'text/csv': ['.csv'] }
+                    }]
+                });
+                
+                const writable = await fileHandle.createWritable();
+                await writable.write(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+                await writable.close();
+                
+                this.showToast('파일이 저장되었습니다', 'success');
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    console.error('File save error:', err);
+                    this.downloadFile(csv, fileName);
+                }
+            }
+        } else {
+            // 폴백: 다운로드 방식
+            this.downloadFile(csv, fileName);
+        }
+    }
+
+    downloadFile(csv, fileName) {
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
         const url = URL.createObjectURL(blob);
-        const now = new Date();
-        const fileName = `BARCODE_EXPORT_${now.getFullYear().toString().slice(-2)}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}.csv`;
         
         link.setAttribute('href', url);
         link.setAttribute('download', fileName);
@@ -260,8 +319,20 @@ class BarcodeReader {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+        URL.revokeObjectURL(url);
         
-        alert('저장 완료');
+        this.showToast('파일이 다운로드되었습니다', 'success');
+    }
+
+    showToast(message, type = 'success') {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.className = `toast ${type}`;
+        toast.classList.add('show');
+        
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3000);
     }
 
     stop() {
