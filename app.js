@@ -63,10 +63,12 @@ class BarcodeReader {
 
             // 카메라 전환 버튼 표시/숨김
             const switchBtn = document.getElementById('btnSwitchCamera');
-            if (this.availableDevices.length > 1 && switchBtn) {
-                switchBtn.style.display = 'flex';
-            } else if (switchBtn) {
-                switchBtn.style.display = 'none';
+            if (switchBtn) {
+                if (this.availableDevices.length > 1) {
+                    switchBtn.style.display = 'flex';
+                } else {
+                    switchBtn.style.display = 'none';
+                }
             }
 
             // 후면 카메라 찾기 (모바일)
@@ -136,24 +138,41 @@ class BarcodeReader {
     }
 
     async switchCamera() {
-        if (this.availableDevices.length <= 1) {
+        if (!this.availableDevices || this.availableDevices.length <= 1) {
             this.showToast('전환할 카메라가 없습니다', 'error');
             return;
         }
 
-        // 다음 카메라로 전환
-        this.currentDeviceIndex = (this.currentDeviceIndex + 1) % this.availableDevices.length;
-        const newDeviceId = this.availableDevices[this.currentDeviceIndex].deviceId;
-        this.selectedDeviceId = newDeviceId;
-        
-        // 후면/전면 카메라 상태 업데이트
-        const deviceLabel = this.availableDevices[this.currentDeviceIndex].label.toLowerCase();
-        this.isFacingBack = deviceLabel.includes('back') || 
-                           deviceLabel.includes('rear') || 
-                           deviceLabel.includes('environment');
-        
-        await this.switchToDevice(newDeviceId);
-        this.showToast('카메라 전환됨', 'success');
+        try {
+            // 다음 카메라로 전환
+            this.currentDeviceIndex = (this.currentDeviceIndex + 1) % this.availableDevices.length;
+            const newDeviceId = this.availableDevices[this.currentDeviceIndex].deviceId;
+            this.selectedDeviceId = newDeviceId;
+            
+            // 후면/전면 카메라 상태 업데이트
+            const deviceLabel = this.availableDevices[this.currentDeviceIndex].label.toLowerCase();
+            this.isFacingBack = deviceLabel.includes('back') || 
+                               deviceLabel.includes('rear') || 
+                               deviceLabel.includes('environment');
+            
+            // 스캔 중지
+            const wasScanning = this.isScanning;
+            this.isScanning = false;
+            
+            await this.switchToDevice(newDeviceId);
+            
+            // 스캔 재시작
+            if (wasScanning) {
+                setTimeout(() => {
+                    this.startScanning();
+                }, 500);
+            }
+            
+            this.showToast('카메라 전환됨', 'success');
+        } catch (err) {
+            console.error('Camera switch error:', err);
+            this.showToast('카메라 전환 실패', 'error');
+        }
     }
 
     startScanning() {

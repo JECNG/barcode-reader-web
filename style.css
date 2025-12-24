@@ -11,22 +11,21 @@
     --success-dark: #059669;
     --danger: #ef4444;
     --danger-dark: #dc2626;
-    --warning: #f59e0b;
     --bg-dark: #0f172a;
     --bg-card: #1e293b;
     --bg-card-hover: #334155;
     --text-primary: #f1f5f9;
     --text-secondary: #cbd5e1;
     --border: #334155;
-    --shadow: rgba(0, 0, 0, 0.3);
 }
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans KR', Oxygen, Ubuntu, Cantarell, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #000;
     color: var(--text-primary);
     overflow: hidden;
     height: 100vh;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .container {
@@ -43,6 +42,7 @@ body {
     position: relative;
     overflow: hidden;
     background: #000;
+    min-height: 0;
 }
 
 #video {
@@ -50,63 +50,13 @@ body {
     height: 100%;
     object-fit: cover;
     transform: scaleX(-1);
+    background: #000;
 }
 
 /* 모바일에서는 좌우 반전 제거 */
 @media (max-width: 768px) {
     #video {
         transform: none;
-    }
-}
-
-/* 카메라 전환 버튼 */
-.btn-camera-switch {
-    position: absolute;
-    top: 80px;
-    right: 20px;
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(10px);
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    color: white;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 20;
-    transition: all 0.3s;
-    padding: 0;
-}
-
-.btn-camera-switch:hover {
-    background: rgba(0, 0, 0, 0.8);
-    border-color: rgba(255, 255, 255, 0.5);
-    transform: scale(1.1);
-}
-
-.btn-camera-switch:active {
-    transform: scale(0.95);
-}
-
-.btn-camera-switch svg {
-    width: 24px;
-    height: 24px;
-    stroke-width: 2;
-}
-
-@media (max-width: 768px) {
-    .btn-camera-switch {
-        top: max(80px, calc(env(safe-area-inset-top) + 70px));
-        right: 16px;
-        width: 44px;
-        height: 44px;
-    }
-    
-    .btn-camera-switch svg {
-        width: 22px;
-        height: 22px;
     }
 }
 
@@ -119,47 +69,47 @@ body {
     top: 0;
     left: 0;
     right: 0;
-    background: linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, rgba(15, 23, 42, 0.7) 100%);
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.6) 100%);
     backdrop-filter: blur(10px);
     color: #10b981;
-    padding: 16px 20px;
-    font-size: 16px;
+    padding: 12px 16px;
+    font-size: 14px;
     font-weight: 600;
     z-index: 10;
-    min-height: 60px;
+    min-height: 50px;
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
     border-bottom: 2px solid rgba(16, 185, 129, 0.3);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    letter-spacing: 0.5px;
     word-break: break-all;
+    padding-top: max(12px, env(safe-area-inset-top));
 }
 
 .recording-indicator {
     position: absolute;
-    top: 70px;
-    left: 20px;
-    right: 20px;
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.9) 0%, rgba(220, 38, 38, 0.9) 100%);
+    top: 60px;
+    left: 16px;
+    right: 16px;
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.95) 0%, rgba(220, 38, 38, 0.95) 100%);
     backdrop-filter: blur(10px);
     color: white;
-    padding: 12px 20px;
+    padding: 10px 16px;
     border-radius: 12px;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     z-index: 11;
-    display: flex;
+    display: none;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4);
     animation: slideDown 0.3s ease-out;
+    top: max(60px, calc(env(safe-area-inset-top) + 50px));
 }
 
 .recording-indicator .pulse {
-    width: 12px;
-    height: 12px;
+    width: 10px;
+    height: 10px;
     background: white;
     border-radius: 50%;
     animation: pulse 1.5s infinite;
@@ -187,33 +137,70 @@ body {
     }
 }
 
+/* 카메라 전환 버튼 */
+.btn-camera-switch {
+    position: absolute;
+    top: 60px;
+    right: 16px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    color: white;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+    transition: all 0.2s;
+    padding: 0;
+    top: max(60px, calc(env(safe-area-inset-top) + 50px));
+}
+
+.btn-camera-switch:hover,
+.btn-camera-switch:active {
+    background: rgba(0, 0, 0, 0.9);
+    border-color: rgba(255, 255, 255, 0.6);
+    transform: scale(1.05);
+}
+
+.btn-camera-switch svg {
+    width: 22px;
+    height: 22px;
+    stroke-width: 2.5;
+}
+
 .controls {
     display: flex;
-    gap: 12px;
-    padding: 20px;
-    background: linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, rgba(15, 23, 42, 1) 100%);
+    gap: 10px;
+    padding: 16px;
+    background: rgba(0, 0, 0, 0.9);
     backdrop-filter: blur(20px);
     justify-content: center;
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+    flex-shrink: 0;
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
 }
 
 .btn {
     flex: 1;
-    padding: 18px 16px;
+    padding: 16px 12px;
     border: none;
     border-radius: 16px;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 600;
     cursor: pointer;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    gap: 6px;
+    transition: all 0.2s;
     color: white;
     position: relative;
     overflow: hidden;
     max-width: 120px;
+    min-height: 70px;
 }
 
 .btn::before {
@@ -226,65 +213,46 @@ body {
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.2);
     transform: translate(-50%, -50%);
-    transition: width 0.6s, height 0.6s;
+    transition: width 0.4s, height 0.4s;
 }
 
 .btn:active::before {
-    width: 300px;
-    height: 300px;
+    width: 200px;
+    height: 200px;
 }
 
 .btn .icon {
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
     stroke-width: 2.5;
-    transition: transform 0.3s;
-}
-
-.btn:active .icon {
-    transform: scale(0.9);
+    flex-shrink: 0;
 }
 
 .btn-record {
     background: linear-gradient(135deg, var(--success) 0%, var(--success-dark) 100%);
-    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
-}
-
-.btn-record:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
 }
 
 .btn-record:active {
-    transform: translateY(0);
+    transform: scale(0.95);
 }
 
 .btn-stop {
     background: linear-gradient(135deg, var(--danger) 0%, var(--danger-dark) 100%);
-    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
-}
-
-.btn-stop:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
 }
 
 .btn-stop:active {
-    transform: translateY(0);
+    transform: scale(0.95);
 }
 
 .btn-list {
     background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
-}
-
-.btn-list:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
 }
 
 .btn-list:active {
-    transform: translateY(0);
+    transform: scale(0.95);
 }
 
 /* 모달 스타일 */
@@ -296,7 +264,7 @@ body {
     top: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.85);
+    background: rgba(0, 0, 0, 0.9);
     backdrop-filter: blur(8px);
     animation: fadeIn 0.3s;
 }
@@ -309,10 +277,10 @@ body {
 
 .modal-content {
     background: var(--bg-card);
-    border-radius: 24px;
-    padding: 32px;
+    border-radius: 20px;
+    padding: 28px;
     max-width: 90%;
-    width: 500px;
+    width: 420px;
     max-height: 90vh;
     display: flex;
     flex-direction: column;
@@ -323,21 +291,24 @@ body {
 }
 
 .modal-content.modal-small {
-    width: 400px;
+    width: 380px;
     text-align: center;
 }
 
 .modal-content.fullscreen {
-    width: 95%;
-    height: 95%;
+    width: 100%;
+    height: 100%;
     max-width: none;
     max-height: none;
-    padding: 24px;
+    padding: 20px;
+    border-radius: 0;
+    padding-top: max(20px, env(safe-area-inset-top));
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
 }
 
 .modal-icon {
-    font-size: 48px;
-    margin-bottom: 8px;
+    font-size: 40px;
+    margin-bottom: 4px;
 }
 
 .modal-header {
@@ -349,14 +320,14 @@ body {
 
 .modal-header h3 {
     color: var(--text-primary);
-    font-size: 24px;
+    font-size: 22px;
     font-weight: 700;
     margin-bottom: 4px;
 }
 
 .modal-subtitle {
     color: var(--text-secondary);
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 400;
 }
 
@@ -372,12 +343,12 @@ body {
     color: var(--text-secondary);
     cursor: pointer;
     padding: 8px;
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 12px;
+    border-radius: 10px;
     transition: all 0.2s;
 }
 
@@ -394,7 +365,7 @@ body {
 .modal-content input[type="text"],
 .modal-content textarea {
     width: 100%;
-    padding: 16px;
+    padding: 14px;
     border: 2px solid var(--border);
     border-radius: 12px;
     background: rgba(30, 41, 59, 0.5);
@@ -422,15 +393,15 @@ body {
 }
 
 .modal-content textarea {
-    min-height: 400px;
-    font-size: 14px;
+    min-height: 350px;
+    font-size: 13px;
     line-height: 1.6;
     font-family: 'Courier New', monospace;
 }
 
 .modal-buttons {
     display: flex;
-    gap: 12px;
+    gap: 10px;
     flex-wrap: wrap;
 }
 
@@ -438,8 +409,9 @@ body {
     flex: 1;
     min-width: 100px;
     flex-direction: row;
-    padding: 14px 20px;
+    padding: 12px 18px;
     max-width: none;
+    min-height: auto;
 }
 
 .btn-icon {
@@ -453,9 +425,8 @@ body {
     box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
 }
 
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+.btn-primary:active {
+    transform: scale(0.95);
 }
 
 .btn-secondary {
@@ -463,9 +434,8 @@ body {
     border: 1px solid var(--border);
 }
 
-.btn-secondary:hover {
-    background: var(--bg-card);
-    transform: translateY(-2px);
+.btn-secondary:active {
+    transform: scale(0.95);
 }
 
 .btn-danger {
@@ -473,9 +443,8 @@ body {
     box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
 }
 
-.btn-danger:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+.btn-danger:active {
+    transform: scale(0.95);
 }
 
 .btn-export {
@@ -483,9 +452,57 @@ body {
     box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
 }
 
-.btn-export:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+.btn-export:active {
+    transform: scale(0.95);
+}
+
+/* 내보내기 옵션 */
+.export-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 20px 0;
+}
+
+.export-option-btn {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px;
+    background: var(--bg-card-hover);
+    border: 2px solid var(--border);
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: left;
+    width: 100%;
+}
+
+.export-option-btn:active {
+    background: var(--bg-card);
+    border-color: var(--primary);
+    transform: scale(0.98);
+}
+
+.export-icon {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    stroke-width: 2.5;
+}
+
+.export-label {
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--text-primary);
+    display: block;
+}
+
+.export-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+    display: block;
+    margin-top: 4px;
 }
 
 @keyframes fadeIn {
@@ -516,7 +533,7 @@ body {
     transform: translateX(-50%) translateY(100px);
     background: var(--bg-card);
     color: var(--text-primary);
-    padding: 16px 24px;
+    padding: 14px 20px;
     border-radius: 12px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     z-index: 2000;
@@ -526,6 +543,7 @@ body {
     font-weight: 500;
     min-width: 200px;
     text-align: center;
+    font-size: 14px;
 }
 
 .toast.show {
@@ -543,110 +561,65 @@ body {
     border-color: var(--danger);
 }
 
-/* 내보내기 옵션 */
-.export-options {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin: 20px 0;
-}
-
-.export-option-btn {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 20px;
-    background: var(--bg-card-hover);
-    border: 2px solid var(--border);
-    border-radius: 16px;
-    cursor: pointer;
-    transition: all 0.3s;
-    text-align: left;
-    width: 100%;
-}
-
-.export-option-btn:hover,
-.export-option-btn:active {
-    background: var(--bg-card);
-    border-color: var(--primary);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
-}
-
-.export-icon {
-    width: 32px;
-    height: 32px;
-    flex-shrink: 0;
-    stroke-width: 2.5;
-}
-
-.export-label {
-    font-weight: 600;
-    font-size: 16px;
-    color: var(--text-primary);
-    display: block;
-}
-
-.export-desc {
-    font-size: 13px;
-    color: var(--text-secondary);
-    display: block;
-    margin-top: 4px;
-}
-
 /* 모바일 최적화 */
 @media (max-width: 768px) {
-    body {
-        -webkit-tap-highlight-color: transparent;
-    }
-
     .controls {
-        padding: 20px 16px;
-        gap: 12px;
-        padding-bottom: max(20px, env(safe-area-inset-bottom));
+        padding: 14px 12px;
+        gap: 8px;
     }
     
     .btn {
-        padding: 20px 16px;
-        font-size: 15px;
-        gap: 8px;
+        padding: 14px 10px;
+        font-size: 13px;
+        gap: 5px;
         min-height: 64px;
-        border-radius: 20px;
+        border-radius: 14px;
     }
     
     .btn .icon {
-        width: 32px;
-        height: 32px;
+        width: 24px;
+        height: 24px;
     }
 
     .barcode-display {
-        padding: 14px 16px;
-        font-size: 14px;
-        min-height: 56px;
-        padding-top: max(14px, env(safe-area-inset-top));
+        padding: 10px 14px;
+        font-size: 13px;
+        min-height: 48px;
     }
 
     .recording-indicator {
-        top: max(70px, calc(env(safe-area-inset-top) + 60px));
+        top: max(58px, calc(env(safe-area-inset-top) + 48px));
         left: 12px;
         right: 12px;
-        padding: 14px 16px;
-        font-size: 13px;
-        border-radius: 16px;
+        padding: 10px 14px;
+        font-size: 12px;
+        border-radius: 12px;
+    }
+    
+    .btn-camera-switch {
+        top: max(58px, calc(env(safe-area-inset-top) + 48px));
+        right: 12px;
+        width: 40px;
+        height: 40px;
+    }
+    
+    .btn-camera-switch svg {
+        width: 20px;
+        height: 20px;
     }
     
     .modal-content {
-        padding: 24px 20px;
-        border-radius: 24px 24px 0 0;
+        padding: 24px 18px;
+        border-radius: 20px 20px 0 0;
         max-height: 90vh;
         margin-top: auto;
     }
 
     .modal-content.modal-small {
         width: 90%;
-        max-width: 400px;
+        max-width: 360px;
         margin: auto;
-        border-radius: 24px;
+        border-radius: 20px;
     }
     
     .modal-content.fullscreen {
@@ -654,9 +627,7 @@ body {
         height: 100%;
         max-height: 100vh;
         border-radius: 0;
-        padding: 20px 16px;
-        padding-top: max(20px, env(safe-area-inset-top));
-        padding-bottom: max(20px, env(safe-area-inset-bottom));
+        padding: 18px 14px;
     }
 
     .modal-header h3 {
@@ -664,50 +635,50 @@ body {
     }
 
     .modal-subtitle {
-        font-size: 13px;
+        font-size: 12px;
     }
 
     .modal-buttons {
-        gap: 10px;
+        gap: 8px;
     }
 
     .modal-buttons .btn {
         flex: 1;
         min-width: 0;
-        padding: 16px;
-        font-size: 15px;
+        padding: 14px;
+        font-size: 14px;
     }
 
     .export-option-btn {
-        padding: 18px;
-        border-radius: 16px;
+        padding: 16px;
+        border-radius: 14px;
     }
 
     .export-icon {
-        width: 36px;
-        height: 36px;
+        width: 30px;
+        height: 30px;
     }
 
     .export-label {
-        font-size: 15px;
+        font-size: 14px;
     }
 
     .export-desc {
-        font-size: 12px;
+        font-size: 11px;
     }
 
     .textarea-container {
-        margin: 16px 0;
+        margin: 14px 0;
     }
 
     .modal-content textarea {
-        min-height: 300px;
-        font-size: 13px;
-        padding: 14px;
+        min-height: 280px;
+        font-size: 12px;
+        padding: 12px;
     }
 
     .toast {
-        bottom: max(100px, calc(env(safe-area-inset-bottom) + 80px));
+        bottom: max(90px, calc(env(safe-area-inset-bottom) + 70px));
         left: 16px;
         right: 16px;
         transform: translateX(0) translateY(100px);
@@ -722,19 +693,19 @@ body {
 
 @media (max-width: 480px) {
     .controls {
-        padding: 16px 12px;
-        gap: 10px;
+        padding: 12px 10px;
+        gap: 6px;
     }
     
     .btn {
-        padding: 18px 12px;
-        font-size: 14px;
+        padding: 12px 8px;
+        font-size: 12px;
         min-height: 60px;
     }
     
     .btn .icon {
-        width: 28px;
-        height: 28px;
+        width: 22px;
+        height: 22px;
     }
 
     .modal-content {
