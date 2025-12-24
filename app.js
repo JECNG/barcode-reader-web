@@ -86,6 +86,12 @@ class BarcodeReader {
                     switchBtn.style.display = 'none';
                 }
             }
+            
+            // 옵션 버튼은 항상 표시
+            const optionsBtn = document.getElementById('btnOptions');
+            if (optionsBtn) {
+                optionsBtn.style.display = 'flex';
+            }
 
             // 후면 카메라를 기본으로 찾기 (모바일/데스크톱 모두)
             let deviceId = null;
