@@ -109,6 +109,19 @@
     </div>
 
     <script src="https://unpkg.com/@zxing/library@latest"></script>
+    <script>
+        // ZXing 로드 확인
+        window.addEventListener('load', () => {
+            if (typeof ZXing === 'undefined') {
+                console.error('ZXing library failed to load');
+                const barcodeText = document.getElementById('barcodeText');
+                if (barcodeText) {
+                    barcodeText.textContent = 'ZXing 라이브러리 로드 실패';
+                    barcodeText.style.color = '#ef4444';
+                }
+            }
+        });
+    </script>
     <script src="app.js"></script>
 </body>
 </html>

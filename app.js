@@ -1,8 +1,13 @@
 // ZXing 라이브러리 사용
-const { BrowserMultiFormatReader, DecodeHintType, BarcodeFormat } = ZXing;
+let BrowserMultiFormatReader;
 
 class BarcodeReader {
     constructor() {
+        // ZXing 라이브러리 확인
+        if (!BrowserMultiFormatReader) {
+            throw new Error('ZXing library not loaded');
+        }
+        
         this.codeReader = new BrowserMultiFormatReader();
         this.video = document.getElementById('video');
         this.canvas = document.getElementById('canvas');
@@ -410,19 +415,75 @@ class BarcodeReader {
     }
 }
 
-// 앱 초기화
-let app;
-window.addEventListener('DOMContentLoaded', () => {
+// ZXing 라이브러리 로드 대기
+function initApp() {
+    // ZXing이 로드되었는지 확인
+    if (typeof ZXing === 'undefined') {
+        console.error('ZXing library not found');
+        const barcodeText = document.getElementById('barcodeText');
+        if (barcodeText) {
+            barcodeText.textContent = 'ZXing 라이브러리를 로드할 수 없습니다';
+            barcodeText.style.color = '#ef4444';
+        }
+        return;
+    }
+
     try {
+        // ZXing에서 BrowserMultiFormatReader 가져오기
+        BrowserMultiFormatReader = ZXing.BrowserMultiFormatReader;
+        
+        if (!BrowserMultiFormatReader) {
+            throw new Error('BrowserMultiFormatReader not found in ZXing');
+        }
+
+        // 앱 초기화
         app = new BarcodeReader();
     } catch (error) {
         console.error('App initialization error:', error);
         const barcodeText = document.getElementById('barcodeText');
         if (barcodeText) {
-            barcodeText.textContent = '앱 초기화 오류가 발생했습니다';
+            barcodeText.textContent = `초기화 오류: ${error.message}`;
+            barcodeText.style.color = '#ef4444';
         }
     }
-});
+}
+
+// DOM이 로드되고 ZXing도 로드될 때까지 대기
+if (document.readyState === 'loading') {
+    window.addEventListener('DOMContentLoaded', () => {
+        // ZXing이 이미 로드되었는지 확인
+        if (typeof ZXing !== 'undefined') {
+            initApp();
+        } else {
+            // ZXing 로드를 기다림
+            const checkZXing = setInterval(() => {
+                if (typeof ZXing !== 'undefined') {
+                    clearInterval(checkZXing);
+                    initApp();
+                }
+            }, 100);
+            
+            // 5초 후 타임아웃
+            setTimeout(() => {
+                clearInterval(checkZXing);
+                if (typeof ZXing === 'undefined') {
+                    const barcodeText = document.getElementById('barcodeText');
+                    if (barcodeText) {
+                        barcodeText.textContent = 'ZXing 라이브러리 로드 시간 초과';
+                        barcodeText.style.color = '#ef4444';
+                    }
+                }
+            }, 5000);
+        }
+    });
+} else {
+    // DOM이 이미 로드된 경우
+    if (typeof ZXing !== 'undefined') {
+        initApp();
+    } else {
+        window.addEventListener('load', initApp);
+    }
+}
 
 // 페이지 종료 시 정리
 window.addEventListener('beforeunload', () => {
