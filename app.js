@@ -139,46 +139,71 @@ class BarcodeReader {
             // 비디오를 캔버스에 그리기
             context.drawImage(this.video, 0, 0, width, height);
             
-            // ZXing의 decodeFromCanvas 사용
-            try {
-                const result = await this.codeReader.decodeFromCanvas(this.canvas);
-                if (result) {
-                    this.processBarcodeResult(result);
-                }
-            } catch (decodeError) {
-                // decodeFromCanvas 실패 시 다른 방법 시도
+            // ZXing의 여러 방법 시도
+            // 방법 1: decodeFromCanvasElement (가장 일반적)
+            if (this.codeReader.decodeFromCanvasElement) {
                 try {
-                    // ImageData 사용
-                    const imageData = context.getImageData(0, 0, width, height);
+                    const result = await this.codeReader.decodeFromCanvasElement(this.canvas);
+                    if (result) {
+                        this.processBarcodeResult(result);
+                        return;
+                    }
+                } catch (e) {
+                    // 계속 시도
+                }
+            }
+            
+            // 방법 2: decodeFromCanvas
+            if (this.codeReader.decodeFromCanvas) {
+                try {
+                    const result = await this.codeReader.decodeFromCanvas(this.canvas);
+                    if (result) {
+                        this.processBarcodeResult(result);
+                        return;
+                    }
+                } catch (e) {
+                    // 계속 시도
+                }
+            }
+            
+            // 방법 3: ImageData 사용
+            try {
+                const imageData = context.getImageData(0, 0, width, height);
+                if (this.codeReader.decodeFromImageData) {
                     const result = await this.codeReader.decodeFromImageData(imageData);
                     if (result) {
                         this.processBarcodeResult(result);
-                    }
-                } catch (imageDataError) {
-                    // ImageData도 실패하면 Image로 변환
-                    try {
-                        const img = new Image();
-                        const dataUrl = this.canvas.toDataURL('image/png');
-                        
-                        await new Promise((resolve, reject) => {
-                            img.onload = async () => {
-                                try {
-                                    const result = await this.codeReader.decodeFromImage(img);
-                                    if (result) {
-                                        this.processBarcodeResult(result);
-                                    }
-                                    resolve();
-                                } catch (err) {
-                                    reject(err);
-                                }
-                            };
-                            img.onerror = reject;
-                            img.src = dataUrl;
-                        });
-                    } catch (imgError) {
-                        // 모든 방법 실패 - 정상 (바코드 없음)
+                        return;
                     }
                 }
+            } catch (e) {
+                // 계속 시도
+            }
+            
+            // 방법 4: Image로 변환
+            try {
+                const img = new Image();
+                const dataUrl = this.canvas.toDataURL('image/png');
+                
+                await new Promise((resolve, reject) => {
+                    img.onload = async () => {
+                        try {
+                            if (this.codeReader.decodeFromImage) {
+                                const result = await this.codeReader.decodeFromImage(img);
+                                if (result) {
+                                    this.processBarcodeResult(result);
+                                }
+                            }
+                            resolve();
+                        } catch (err) {
+                            reject(err);
+                        }
+                    };
+                    img.onerror = reject;
+                    img.src = dataUrl;
+                });
+            } catch (e) {
+                // 모든 방법 실패 - 정상 (바코드 없음)
             }
         } catch (err) {
             // 바코드를 찾지 못한 경우는 정상 (에러 무시)
@@ -186,19 +211,39 @@ class BarcodeReader {
     }
 
     processBarcodeResult(result) {
-        if (!result) return;
+        if (!result) {
+            console.log('Empty result');
+            return;
+        }
+        
+        console.log('Processing result:', result);
         
         // ZXing 결과에서 텍스트 추출
         let barcodeValue = null;
+        
+        // 여러 방법으로 텍스트 추출 시도
         if (typeof result.getText === 'function') {
+            barcodeValue = result.getText();
+        } else if (result.getText && typeof result.getText === 'function') {
             barcodeValue = result.getText();
         } else if (result.text) {
             barcodeValue = result.text;
+        } else if (result.rawValue) {
+            barcodeValue = result.rawValue;
         } else if (typeof result === 'string') {
             barcodeValue = result;
+        } else if (result.result && typeof result.result.getText === 'function') {
+            barcodeValue = result.result.getText();
+        } else if (result.result && result.result.text) {
+            barcodeValue = result.result.text;
         }
         
-        if (!barcodeValue) return;
+        console.log('Extracted barcode value:', barcodeValue);
+        
+        if (!barcodeValue) {
+            console.log('No barcode value found in result');
+            return;
+        }
         
         const now = Date.now();
         
