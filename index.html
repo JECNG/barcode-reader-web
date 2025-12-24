@@ -46,11 +46,19 @@
             </button>
         </div>
         
-        <button id="btnSwitchCamera" class="btn-camera-switch" title="카메라 전환">
+        <button id="btnSwitchCamera" class="btn-top-right btn-camera-switch" title="카메라 전환">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
                 <circle cx="12" cy="13" r="4"/>
                 <path d="M12 9v4m-2-2h4"/>
+            </svg>
+        </button>
+        
+        <button id="btnOptions" class="btn-top-right btn-options" title="옵션">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="1"/>
+                <circle cx="12" cy="5" r="1"/>
+                <circle cx="12" cy="19" r="1"/>
             </svg>
         </button>
         
@@ -64,9 +72,36 @@
             <h3>그룹명 입력</h3>
             <p class="modal-description">바코드를 기록할 그룹명을 입력하세요</p>
             <input type="text" id="groupInput" placeholder="예: 창고A, 진열대1" autofocus>
+            <div id="savedGroupsList" class="saved-groups-list"></div>
             <div class="modal-buttons">
                 <button id="groupCancel" class="btn btn-secondary">취소</button>
                 <button id="groupOk" class="btn btn-primary">시작</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 옵션 모달 -->
+    <div id="optionsModal" class="modal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h3>옵션</h3>
+                <button id="closeOptionsModal" class="btn-close">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="options-section">
+                <h4>그룹명 관리</h4>
+                <div class="group-name-input-container">
+                    <input type="text" id="newGroupName" placeholder="새 그룹명 입력">
+                    <button id="btnAddGroup" class="btn btn-primary">추가</button>
+                </div>
+                <div id="savedGroupsOptions" class="saved-groups-options"></div>
+            </div>
+            <div class="modal-buttons">
+                <button id="optionsCancel" class="btn btn-secondary">닫기</button>
             </div>
         </div>
     </div>

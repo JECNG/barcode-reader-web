@@ -16,6 +16,7 @@ class BarcodeReader {
         this.currentGroup = null;
         this.groupBarcodes = [];
         this.recordedBarcodes = new Set();
+        this.savedGroupNames = [];
         this.stream = null;
         this.scanInterval = null;
         this.lastScannedCode = null;
@@ -41,10 +42,25 @@ class BarcodeReader {
                 this.groupBarcodes = [];
             }
         }
+        
+        // 저장된 그룹명 목록 로드
+        const savedGroups = localStorage.getItem('saved_group_names');
+        if (savedGroups) {
+            try {
+                this.savedGroupNames = JSON.parse(savedGroups);
+            } catch (e) {
+                console.error('Failed to load saved group names:', e);
+                this.savedGroupNames = [];
+            }
+        }
     }
 
     saveGroupBarcodes() {
         localStorage.setItem('group_barcodes', JSON.stringify(this.groupBarcodes));
+    }
+
+    saveGroupNames() {
+        localStorage.setItem('saved_group_names', JSON.stringify(this.savedGroupNames));
     }
 
     isMobileDevice() {
@@ -404,6 +420,34 @@ class BarcodeReader {
             this.switchCamera();
         });
 
+        // 옵션 버튼
+        safeAddEventListener('btnOptions', 'click', () => {
+            this.showOptionsModal();
+        });
+
+        safeAddEventListener('closeOptionsModal', 'click', () => {
+            this.hideOptionsModal();
+        });
+
+        safeAddEventListener('optionsCancel', 'click', () => {
+            this.hideOptionsModal();
+        });
+
+        // 그룹명 추가 버튼
+        safeAddEventListener('btnAddGroup', 'click', () => {
+            this.addGroupName();
+        });
+
+        // Enter 키로 그룹명 추가
+        const newGroupNameInput = document.getElementById('newGroupName');
+        if (newGroupNameInput) {
+            newGroupNameInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    this.addGroupName();
+                }
+            });
+        }
+
         // 그룹명 입력 모달
         safeAddEventListener('groupOk', 'click', () => {
             const groupName = document.getElementById('groupInput').value.trim();
@@ -486,6 +530,7 @@ class BarcodeReader {
     showGroupInputDialog() {
         document.getElementById('groupInput').value = '';
         document.getElementById('groupModal').classList.add('show');
+        this.updateSavedGroupsList();
         setTimeout(() => {
             document.getElementById('groupInput').focus();
         }, 100);
@@ -493,6 +538,94 @@ class BarcodeReader {
 
     hideGroupModal() {
         document.getElementById('groupModal').classList.remove('show');
+    }
+
+    showOptionsModal() {
+        document.getElementById('newGroupName').value = '';
+        document.getElementById('optionsModal').classList.add('show');
+        this.updateSavedGroupsOptions();
+    }
+
+    hideOptionsModal() {
+        document.getElementById('optionsModal').classList.remove('show');
+    }
+
+    addGroupName() {
+        const input = document.getElementById('newGroupName');
+        const groupName = input.value.trim();
+        
+        if (!groupName) {
+            this.showToast('그룹명을 입력하세요', 'error');
+            return;
+        }
+
+        if (this.savedGroupNames.includes(groupName)) {
+            this.showToast('이미 존재하는 그룹명입니다', 'error');
+            return;
+        }
+
+        this.savedGroupNames.push(groupName);
+        this.saveGroupNames();
+        this.updateSavedGroupsOptions();
+        input.value = '';
+        this.showToast('그룹명이 추가되었습니다', 'success');
+    }
+
+    deleteGroupName(groupName) {
+        this.savedGroupNames = this.savedGroupNames.filter(name => name !== groupName);
+        this.saveGroupNames();
+        this.updateSavedGroupsOptions();
+        this.updateSavedGroupsList();
+        this.showToast('그룹명이 삭제되었습니다', 'success');
+    }
+
+    updateSavedGroupsList() {
+        const listContainer = document.getElementById('savedGroupsList');
+        if (!listContainer) return;
+
+        if (this.savedGroupNames.length === 0) {
+            listContainer.innerHTML = '';
+            return;
+        }
+
+        listContainer.innerHTML = this.savedGroupNames.map(groupName => 
+            `<div class="saved-group-item" data-group="${groupName}">${groupName}</div>`
+        ).join('');
+
+        // 그룹명 클릭 시 입력 필드에 자동 입력
+        listContainer.querySelectorAll('.saved-group-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const groupName = item.getAttribute('data-group');
+                document.getElementById('groupInput').value = groupName;
+            });
+        });
+    }
+
+    updateSavedGroupsOptions() {
+        const container = document.getElementById('savedGroupsOptions');
+        if (!container) return;
+
+        if (this.savedGroupNames.length === 0) {
+            container.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 20px; font-size: 14px;">저장된 그룹명이 없습니다</div>';
+            return;
+        }
+
+        container.innerHTML = this.savedGroupNames.map(groupName => 
+            `<div class="saved-group-option-item">
+                <span class="group-name">${groupName}</span>
+                <button class="btn-delete-group" data-group="${groupName}">삭제</button>
+            </div>`
+        ).join('');
+
+        // 삭제 버튼 이벤트
+        container.querySelectorAll('.btn-delete-group').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const groupName = btn.getAttribute('data-group');
+                if (confirm(`"${groupName}" 그룹명을 삭제하시겠습니까?`)) {
+                    this.deleteGroupName(groupName);
+                }
+            });
+        });
     }
 
     startRecording(groupName) {
