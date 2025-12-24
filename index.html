@@ -63,6 +63,40 @@
         </div>
     </div>
 
+    <!-- 내보내기 옵션 모달 -->
+    <div id="exportModal" class="modal">
+        <div class="modal-content modal-small">
+            <div class="modal-icon">📤</div>
+            <h3>내보내기 방법 선택</h3>
+            <p class="modal-description">데이터를 내보낼 방법을 선택하세요</p>
+            <div class="export-options">
+                <button id="btnSaveFile" class="export-option-btn">
+                    <svg class="export-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    <span class="export-label">파일로 저장</span>
+                    <span class="export-desc">기기에 CSV 파일 저장</span>
+                </button>
+                <button id="btnShare" class="export-option-btn">
+                    <svg class="export-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="18" cy="5" r="3"/>
+                        <circle cx="6" cy="12" r="3"/>
+                        <circle cx="18" cy="19" r="3"/>
+                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                    </svg>
+                    <span class="export-label">외부 공유</span>
+                    <span class="export-desc">Google Drive 등으로 공유</span>
+                </button>
+            </div>
+            <div class="modal-buttons">
+                <button id="exportCancel" class="btn btn-secondary">취소</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 바코드 리스트 모달 -->
     <div id="listModal" class="modal">
         <div class="modal-content fullscreen">
@@ -102,7 +136,7 @@
                         <polyline points="7 10 12 15 17 10"/>
                         <line x1="12" y1="15" x2="12" y2="3"/>
                     </svg>
-                    파일로 저장
+                    내보내기
                 </button>
             </div>
         </div>

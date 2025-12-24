@@ -221,7 +221,22 @@ class BarcodeReader {
 
         // 내보내기 버튼
         document.getElementById('btnExport').addEventListener('click', () => {
+            this.showExportOptions();
+        });
+
+        // 내보내기 옵션 모달
+        document.getElementById('btnSaveFile').addEventListener('click', () => {
+            this.hideExportModal();
             this.exportCsv();
+        });
+
+        document.getElementById('btnShare').addEventListener('click', () => {
+            this.hideExportModal();
+            this.shareCsv();
+        });
+
+        document.getElementById('exportCancel').addEventListener('click', () => {
+            this.hideExportModal();
         });
 
         // Enter 키로 그룹명 입력
@@ -329,12 +344,7 @@ class BarcodeReader {
         document.getElementById('listCount').textContent = `총 ${totalCount}개 항목`;
     }
 
-    async exportCsv() {
-        if (this.groupBarcodes.length === 0) {
-            this.showToast('저장할 바코드가 없습니다', 'error');
-            return;
-        }
-
+    getCsvData() {
         const csvHeader = '\uFEFF바코드,그룹명\n'; // UTF-8 BOM
         let csvBody = '';
         this.groupBarcodes.forEach(item => {
@@ -342,10 +352,29 @@ class BarcodeReader {
                 csvBody += `"${barcode}","${item.group}"\n`;
             });
         });
-        const csv = csvHeader + csvBody;
-        
+        return csvHeader + csvBody;
+    }
+
+    getFileName() {
         const now = new Date();
-        const fileName = `BARCODE_EXPORT_${now.getFullYear().toString().slice(-2)}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}.csv`;
+        return `BARCODE_EXPORT_${now.getFullYear().toString().slice(-2)}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}.csv`;
+    }
+
+    showExportOptions() {
+        if (this.groupBarcodes.length === 0) {
+            this.showToast('저장할 바코드가 없습니다', 'error');
+            return;
+        }
+        document.getElementById('exportModal').classList.add('show');
+    }
+
+    hideExportModal() {
+        document.getElementById('exportModal').classList.remove('show');
+    }
+
+    async exportCsv() {
+        const csv = this.getCsvData();
+        const fileName = this.getFileName();
         
         // File System Access API 사용 (Chrome/Edge)
         if ('showSaveFilePicker' in window) {
@@ -372,6 +401,49 @@ class BarcodeReader {
         } else {
             // 폴백: 다운로드 방식
             this.downloadFile(csv, fileName);
+        }
+    }
+
+    async shareCsv() {
+        const csv = this.getCsvData();
+        const fileName = this.getFileName();
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const file = new File([blob], fileName, { type: 'text/csv' });
+
+        // Web Share API 사용 (모바일 네이티브 공유)
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+            try {
+                await navigator.share({
+                    title: '바코드 리스트',
+                    text: '바코드 스캔 데이터',
+                    files: [file]
+                });
+                this.showToast('공유되었습니다', 'success');
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    console.error('Share error:', err);
+                    // 폴백: 다운로드
+                    this.downloadFile(csv, fileName);
+                }
+            }
+        } else if (navigator.share) {
+            // 파일 공유가 안되면 텍스트만 공유
+            try {
+                await navigator.share({
+                    title: '바코드 리스트',
+                    text: csv
+                });
+                this.showToast('공유되었습니다', 'success');
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    // 폴백: 다운로드
+                    this.downloadFile(csv, fileName);
+                }
+            }
+        } else {
+            // Web Share API가 없으면 다운로드
+            this.downloadFile(csv, fileName);
+            this.showToast('공유 기능을 사용할 수 없습니다. 파일이 다운로드되었습니다', 'error');
         }
     }
 
