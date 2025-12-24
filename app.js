@@ -155,23 +155,33 @@ class BarcodeReader {
     }
 
     initEventListeners() {
+        // 요소 존재 확인 후 이벤트 리스너 등록
+        const safeAddEventListener = (id, event, handler) => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.addEventListener(event, handler);
+            } else {
+                console.warn(`Element with id '${id}' not found`);
+            }
+        };
+
         // 녹화 버튼
-        document.getElementById('btnRecord').addEventListener('click', () => {
+        safeAddEventListener('btnRecord', 'click', () => {
             this.showGroupInputDialog();
         });
 
         // 중단 버튼
-        document.getElementById('btnStop').addEventListener('click', () => {
+        safeAddEventListener('btnStop', 'click', () => {
             this.stopRecording();
         });
 
         // 리스트 버튼
-        document.getElementById('btnList').addEventListener('click', () => {
+        safeAddEventListener('btnList', 'click', () => {
             this.showBarcodeListDialog();
         });
 
         // 그룹명 입력 모달
-        document.getElementById('groupOk').addEventListener('click', () => {
+        safeAddEventListener('groupOk', 'click', () => {
             const groupName = document.getElementById('groupInput').value.trim();
             if (groupName) {
                 this.startRecording(groupName);
@@ -181,21 +191,17 @@ class BarcodeReader {
             }
         });
 
-        document.getElementById('groupCancel').addEventListener('click', () => {
+        safeAddEventListener('groupCancel', 'click', () => {
             this.hideGroupModal();
         });
 
         // 리스트 모달
-        document.getElementById('closeListModal').addEventListener('click', () => {
-            this.hideListModal();
-        });
-
-        document.getElementById('listOk').addEventListener('click', () => {
+        safeAddEventListener('closeListModal', 'click', () => {
             this.hideListModal();
         });
 
         // 복사 버튼
-        document.getElementById('btnCopy').addEventListener('click', () => {
+        safeAddEventListener('btnCopy', 'click', () => {
             const text = document.getElementById('barcodeList').value;
             if (!text || text.trim() === '바코드,그룹명' || text.trim() === '') {
                 this.showToast('복사할 내용이 없습니다', 'error');
@@ -210,7 +216,7 @@ class BarcodeReader {
         });
 
         // 전체 삭제 버튼
-        document.getElementById('btnClear').addEventListener('click', () => {
+        safeAddEventListener('btnClear', 'click', () => {
             if (confirm('리스트가 전체 삭제됩니다. 계속하시겠습니까?')) {
                 this.groupBarcodes = [];
                 this.saveGroupBarcodes();
@@ -220,31 +226,37 @@ class BarcodeReader {
         });
 
         // 내보내기 버튼
-        document.getElementById('btnExport').addEventListener('click', () => {
+        safeAddEventListener('btnExport', 'click', () => {
             this.showExportOptions();
         });
 
         // 내보내기 옵션 모달
-        document.getElementById('btnSaveFile').addEventListener('click', () => {
+        safeAddEventListener('btnSaveFile', 'click', () => {
             this.hideExportModal();
             this.exportCsv();
         });
 
-        document.getElementById('btnShare').addEventListener('click', () => {
+        safeAddEventListener('btnShare', 'click', () => {
             this.hideExportModal();
             this.shareCsv();
         });
 
-        document.getElementById('exportCancel').addEventListener('click', () => {
+        safeAddEventListener('exportCancel', 'click', () => {
             this.hideExportModal();
         });
 
         // Enter 키로 그룹명 입력
-        document.getElementById('groupInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                document.getElementById('groupOk').click();
-            }
-        });
+        const groupInput = document.getElementById('groupInput');
+        if (groupInput) {
+            groupInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    const groupOkBtn = document.getElementById('groupOk');
+                    if (groupOkBtn) {
+                        groupOkBtn.click();
+                    }
+                }
+            });
+        }
     }
 
     showGroupInputDialog() {
