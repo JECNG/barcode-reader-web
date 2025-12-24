@@ -1,5 +1,5 @@
 // ZXing 라이브러리 사용
-const { BrowserMultiFormatReader } = ZXing;
+const { BrowserMultiFormatReader, DecodeHintType, BarcodeFormat } = ZXing;
 
 class BarcodeReader {
     constructor() {
@@ -93,45 +93,34 @@ class BarcodeReader {
 
         try {
             const context = this.canvas.getContext('2d', { willReadFrequently: true });
-            this.canvas.width = this.video.videoWidth || 640;
-            this.canvas.height = this.video.videoHeight || 480;
+            const width = this.video.videoWidth || 640;
+            const height = this.video.videoHeight || 480;
+            
+            this.canvas.width = width;
+            this.canvas.height = height;
             
             // 비디오를 캔버스에 그리기
-            context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+            context.drawImage(this.video, 0, 0, width, height);
             
-            // ZXing의 올바른 방법: HTMLImageElement 또는 ImageData 사용
-            const imageData = context.getImageData(0, 0, this.canvas.width, this.canvas.height);
+            // ZXing의 올바른 방법: ImageData를 직접 사용
+            const imageData = context.getImageData(0, 0, width, height);
             
-            // ZXing 라이브러리의 decodeFromImageData는 존재하지 않으므로
-            // 다른 방법 사용: HTMLImageElement로 변환
-            const img = new Image();
-            img.src = this.canvas.toDataURL('image/png');
+            // ZXing 라이브러리로 디코딩
+            const result = await this.codeReader.decodeFromImageData(imageData);
             
-            await new Promise((resolve) => {
-                img.onload = async () => {
-                    try {
-                        // ZXing의 올바른 API 사용
-                        const result = await this.codeReader.decodeFromImage(img);
-                        
-                        if (result) {
-                            const barcodeValue = result.getText();
-                            const now = Date.now();
-                            
-                            // 중복 스캔 방지 (1초 내 같은 바코드 무시)
-                            if (this.lastScannedCode !== barcodeValue || now - this.lastScanTime > 1000) {
-                                this.lastScannedCode = barcodeValue;
-                                this.lastScanTime = now;
-                                this.handleBarcodeDetected(barcodeValue);
-                            }
-                        }
-                    } catch (err) {
-                        // 바코드를 찾지 못한 경우는 정상
-                    }
-                    resolve();
-                };
-            });
+            if (result) {
+                const barcodeValue = result.getText();
+                const now = Date.now();
+                
+                // 중복 스캔 방지 (1초 내 같은 바코드 무시)
+                if (this.lastScannedCode !== barcodeValue || now - this.lastScanTime > 1000) {
+                    this.lastScannedCode = barcodeValue;
+                    this.lastScanTime = now;
+                    this.handleBarcodeDetected(barcodeValue);
+                }
+            }
         } catch (err) {
-            // 에러는 무시 (스캔 실패는 정상)
+            // 바코드를 찾지 못한 경우는 정상 (에러 무시)
         }
     }
 
@@ -140,6 +129,7 @@ class BarcodeReader {
         if (this.isRecording && this.currentGroup) {
             if (!this.recordedBarcodes.has(barcodeValue)) {
                 this.recordedBarcodes.add(barcodeValue);
+                this.updateRecordingIndicator();
                 this.showToast(`바코드 추가: ${barcodeValue}`, 'success');
             }
         }
@@ -427,7 +417,10 @@ window.addEventListener('DOMContentLoaded', () => {
         app = new BarcodeReader();
     } catch (error) {
         console.error('App initialization error:', error);
-        document.getElementById('barcodeText').textContent = '앱 초기화 오류가 발생했습니다';
+        const barcodeText = document.getElementById('barcodeText');
+        if (barcodeText) {
+            barcodeText.textContent = '앱 초기화 오류가 발생했습니다';
+        }
     }
 });
 
