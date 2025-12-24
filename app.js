@@ -35,6 +35,11 @@ class BarcodeReader {
         localStorage.setItem('group_barcodes', JSON.stringify(this.groupBarcodes));
     }
 
+    isMobileDevice() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+               (window.matchMedia && window.matchMedia('(max-width: 768px)').matches);
+    }
+
     async startCamera() {
         try {
             const devices = await this.codeReader.listVideoInputDevices();
@@ -49,6 +54,12 @@ class BarcodeReader {
             });
             
             this.video.srcObject = this.stream;
+            
+            // 모바일에서는 좌우 반전 제거
+            if (this.isMobileDevice()) {
+                this.video.style.transform = 'none';
+            }
+            
             this.video.play();
             
             // 비디오가 재생되면 스캔 시작

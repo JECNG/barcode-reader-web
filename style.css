@@ -52,6 +52,13 @@ body {
     transform: scaleX(-1);
 }
 
+/* 모바일에서는 좌우 반전 제거 */
+@media (max-width: 768px) {
+    #video {
+        transform: none;
+    }
+}
+
 #canvas {
     display: none;
 }
