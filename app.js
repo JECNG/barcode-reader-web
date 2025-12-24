@@ -22,6 +22,9 @@ class BarcodeReader {
         this.lastScanTime = 0;
         this.isScanning = false;
         this.selectedDeviceId = null;
+        this.availableDevices = [];
+        this.currentDeviceIndex = 0;
+        this.isFacingBack = true;
         
         this.loadGroupBarcodes();
         this.initEventListeners();
@@ -52,28 +55,53 @@ class BarcodeReader {
     async startCamera() {
         try {
             // 카메라 디바이스 목록 가져오기
-            const devices = await this.codeReader.listVideoInputDevices();
+            this.availableDevices = await this.codeReader.listVideoInputDevices();
             
-            if (devices.length === 0) {
+            if (this.availableDevices.length === 0) {
                 throw new Error('카메라를 찾을 수 없습니다');
+            }
+
+            // 카메라 전환 버튼 표시/숨김
+            const switchBtn = document.getElementById('btnSwitchCamera');
+            if (this.availableDevices.length > 1 && switchBtn) {
+                switchBtn.style.display = 'flex';
+            } else if (switchBtn) {
+                switchBtn.style.display = 'none';
             }
 
             // 후면 카메라 찾기 (모바일)
             let deviceId = null;
             if (this.isMobileDevice()) {
-                const backCamera = devices.find(device => 
+                const backCameraIndex = this.availableDevices.findIndex(device => 
                     device.label.toLowerCase().includes('back') || 
                     device.label.toLowerCase().includes('rear') ||
                     device.label.toLowerCase().includes('environment')
                 );
-                deviceId = backCamera ? backCamera.deviceId : devices[0].deviceId;
+                this.currentDeviceIndex = backCameraIndex >= 0 ? backCameraIndex : 0;
+                deviceId = this.availableDevices[this.currentDeviceIndex].deviceId;
             } else {
-                deviceId = devices[0].deviceId;
+                this.currentDeviceIndex = 0;
+                deviceId = this.availableDevices[0].deviceId;
             }
 
             this.selectedDeviceId = deviceId;
+            await this.switchToDevice(deviceId);
             
-            // 카메라 접근 권한 요청
+        } catch (err) {
+            console.error('Camera access error:', err);
+            this.barcodeText.textContent = '카메라 접근 권한이 필요합니다';
+            this.showToast('카메라 접근 권한을 허용해주세요', 'error');
+        }
+    }
+
+    async switchToDevice(deviceId) {
+        try {
+            // 기존 스트림 정지
+            if (this.stream) {
+                this.stream.getTracks().forEach(track => track.stop());
+            }
+
+            // 새 카메라 접근 권한 요청
             this.stream = await navigator.mediaDevices.getUserMedia({
                 video: {
                     deviceId: { exact: deviceId },
@@ -87,6 +115,8 @@ class BarcodeReader {
             // 모바일에서는 좌우 반전 제거
             if (this.isMobileDevice()) {
                 this.video.style.transform = 'none';
+            } else {
+                this.video.style.transform = 'scaleX(-1)';
             }
             
             await this.video.play();
@@ -94,14 +124,36 @@ class BarcodeReader {
             // 비디오가 준비되면 스캔 시작
             this.video.addEventListener('loadedmetadata', () => {
                 this.barcodeText.textContent = '카메라 준비 완료 - 바코드를 스캔하세요';
-                this.startScanning();
+                if (!this.isScanning) {
+                    this.startScanning();
+                }
             }, { once: true });
             
         } catch (err) {
-            console.error('Camera access error:', err);
-            this.barcodeText.textContent = '카메라 접근 권한이 필요합니다';
-            this.showToast('카메라 접근 권한을 허용해주세요', 'error');
+            console.error('Camera switch error:', err);
+            this.showToast('카메라 전환 실패', 'error');
         }
+    }
+
+    async switchCamera() {
+        if (this.availableDevices.length <= 1) {
+            this.showToast('전환할 카메라가 없습니다', 'error');
+            return;
+        }
+
+        // 다음 카메라로 전환
+        this.currentDeviceIndex = (this.currentDeviceIndex + 1) % this.availableDevices.length;
+        const newDeviceId = this.availableDevices[this.currentDeviceIndex].deviceId;
+        this.selectedDeviceId = newDeviceId;
+        
+        // 후면/전면 카메라 상태 업데이트
+        const deviceLabel = this.availableDevices[this.currentDeviceIndex].label.toLowerCase();
+        this.isFacingBack = deviceLabel.includes('back') || 
+                           deviceLabel.includes('rear') || 
+                           deviceLabel.includes('environment');
+        
+        await this.switchToDevice(newDeviceId);
+        this.showToast('카메라 전환됨', 'success');
     }
 
     startScanning() {
@@ -139,37 +191,15 @@ class BarcodeReader {
             // 비디오를 캔버스에 그리기
             context.drawImage(this.video, 0, 0, width, height);
             
-            // ZXing의 여러 방법 시도
-            // 방법 1: decodeFromCanvasElement (가장 일반적)
-            if (this.codeReader.decodeFromCanvasElement) {
-                try {
-                    const result = await this.codeReader.decodeFromCanvasElement(this.canvas);
-                    if (result) {
-                        this.processBarcodeResult(result);
-                        return;
-                    }
-                } catch (e) {
-                    // 계속 시도
-                }
-            }
-            
-            // 방법 2: decodeFromCanvas
-            if (this.codeReader.decodeFromCanvas) {
-                try {
-                    const result = await this.codeReader.decodeFromCanvas(this.canvas);
-                    if (result) {
-                        this.processBarcodeResult(result);
-                        return;
-                    }
-                } catch (e) {
-                    // 계속 시도
-                }
-            }
-            
-            // 방법 3: ImageData 사용
+            // ZXing의 decodeFromVideoDevice를 사용하는 것이 가장 확실함
+            // 하지만 이미 비디오 스트림이 있으므로 canvas에서 직접 디코딩
             try {
+                // ZXing의 실제 API: decodeFromCanvasElement 또는 decodeFromImageElement
+                // 먼저 ImageData로 시도
                 const imageData = context.getImageData(0, 0, width, height);
-                if (this.codeReader.decodeFromImageData) {
+                
+                // ZXing 라이브러리의 실제 메서드 확인
+                if (typeof this.codeReader.decodeFromImageData === 'function') {
                     const result = await this.codeReader.decodeFromImageData(imageData);
                     if (result) {
                         this.processBarcodeResult(result);
@@ -177,10 +207,10 @@ class BarcodeReader {
                     }
                 }
             } catch (e) {
-                // 계속 시도
+                // ImageData 실패
             }
-            
-            // 방법 4: Image로 변환
+
+            // Image로 변환하여 시도
             try {
                 const img = new Image();
                 const dataUrl = this.canvas.toDataURL('image/png');
@@ -188,7 +218,17 @@ class BarcodeReader {
                 await new Promise((resolve, reject) => {
                     img.onload = async () => {
                         try {
-                            if (this.codeReader.decodeFromImage) {
+                            // decodeFromImageElement 또는 decodeFromImage 시도
+                            if (typeof this.codeReader.decodeFromImageElement === 'function') {
+                                const result = await this.codeReader.decodeFromImageElement(img);
+                                if (result) {
+                                    this.processBarcodeResult(result);
+                                    resolve();
+                                    return;
+                                }
+                            }
+                            
+                            if (typeof this.codeReader.decodeFromImage === 'function') {
                                 const result = await this.codeReader.decodeFromImage(img);
                                 if (result) {
                                     this.processBarcodeResult(result);
@@ -306,6 +346,11 @@ class BarcodeReader {
         // 리스트 버튼
         safeAddEventListener('btnList', 'click', () => {
             this.showBarcodeListDialog();
+        });
+
+        // 카메라 전환 버튼
+        safeAddEventListener('btnSwitchCamera', 'click', () => {
+            this.switchCamera();
         });
 
         // 그룹명 입력 모달

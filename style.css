@@ -59,6 +59,57 @@ body {
     }
 }
 
+/* 카메라 전환 버튼 */
+.btn-camera-switch {
+    position: absolute;
+    top: 80px;
+    right: 20px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+    transition: all 0.3s;
+    padding: 0;
+}
+
+.btn-camera-switch:hover {
+    background: rgba(0, 0, 0, 0.8);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: scale(1.1);
+}
+
+.btn-camera-switch:active {
+    transform: scale(0.95);
+}
+
+.btn-camera-switch svg {
+    width: 24px;
+    height: 24px;
+    stroke-width: 2;
+}
+
+@media (max-width: 768px) {
+    .btn-camera-switch {
+        top: max(80px, calc(env(safe-area-inset-top) + 70px));
+        right: 16px;
+        width: 44px;
+        height: 44px;
+    }
+    
+    .btn-camera-switch svg {
+        width: 22px;
+        height: 22px;
+    }
+}
+
 #canvas {
     display: none;
 }
