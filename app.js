@@ -71,17 +71,48 @@ class BarcodeReader {
                 }
             }
 
-            // 후면 카메라 찾기 (모바일)
+            // 후면 카메라를 기본으로 찾기 (모바일/데스크톱 모두)
             let deviceId = null;
-            if (this.isMobileDevice()) {
-                const backCameraIndex = this.availableDevices.findIndex(device => 
-                    device.label.toLowerCase().includes('back') || 
-                    device.label.toLowerCase().includes('rear') ||
-                    device.label.toLowerCase().includes('environment')
-                );
-                this.currentDeviceIndex = backCameraIndex >= 0 ? backCameraIndex : 0;
-                deviceId = this.availableDevices[this.currentDeviceIndex].deviceId;
+            
+            // 후면 카메라 찾기
+            const backCameraIndex = this.availableDevices.findIndex(device => {
+                const label = device.label.toLowerCase();
+                return label.includes('back') || 
+                       label.includes('rear') ||
+                       label.includes('environment') ||
+                       label.includes('후면') ||
+                       (device.getCapabilities && device.getCapabilities().facingMode === 'environment');
+            });
+            
+            // facingMode로도 찾기
+            let backCameraByFacing = -1;
+            if (backCameraIndex < 0) {
+                // getUserMedia로 facingMode 확인
+                try {
+                    const testStream = await navigator.mediaDevices.getUserMedia({
+                        video: { facingMode: 'environment' }
+                    });
+                    const track = testStream.getVideoTracks()[0];
+                    const settings = track.getSettings();
+                    testStream.getTracks().forEach(t => t.stop());
+                    
+                    // environment facingMode를 지원하는 카메라 찾기
+                    backCameraByFacing = this.availableDevices.findIndex(device => {
+                        return device.deviceId === settings.deviceId;
+                    });
+                } catch (e) {
+                    // facingMode 확인 실패
+                }
+            }
+            
+            if (backCameraIndex >= 0) {
+                this.currentDeviceIndex = backCameraIndex;
+                deviceId = this.availableDevices[backCameraIndex].deviceId;
+            } else if (backCameraByFacing >= 0) {
+                this.currentDeviceIndex = backCameraByFacing;
+                deviceId = this.availableDevices[backCameraByFacing].deviceId;
             } else {
+                // 후면 카메라를 찾지 못하면 첫 번째 카메라 사용
                 this.currentDeviceIndex = 0;
                 deviceId = this.availableDevices[0].deviceId;
             }
@@ -104,12 +135,13 @@ class BarcodeReader {
             }
 
             // 새 카메라 접근 권한 요청
+            // deviceId가 있으면 사용, 없으면 facingMode 사용
+            const videoConstraints = deviceId 
+                ? { deviceId: { exact: deviceId }, width: { ideal: 1280 }, height: { ideal: 720 } }
+                : { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } };
+            
             this.stream = await navigator.mediaDevices.getUserMedia({
-                video: {
-                    deviceId: { exact: deviceId },
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 }
-                }
+                video: videoConstraints
             });
             
             this.video.srcObject = this.stream;

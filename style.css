@@ -137,11 +137,11 @@ body {
     }
 }
 
-/* 카메라 전환 버튼 */
+/* 카메라 전환 버튼 - 우측 상단 */
 .btn-camera-switch {
     position: absolute;
-    top: 60px;
-    right: 16px;
+    top: 12px;
+    right: 12px;
     width: 44px;
     height: 44px;
     border-radius: 50%;
@@ -153,10 +153,10 @@ body {
     display: none;
     align-items: center;
     justify-content: center;
-    z-index: 20;
+    z-index: 25;
     transition: all 0.2s;
     padding: 0;
-    top: max(60px, calc(env(safe-area-inset-top) + 50px));
+    top: max(12px, env(safe-area-inset-top));
 }
 
 .btn-camera-switch:hover,
@@ -259,7 +259,7 @@ body {
 .modal {
     display: none;
     position: fixed;
-    z-index: 1000;
+    z-index: 3000;
     left: 0;
     top: 0;
     width: 100%;
@@ -597,8 +597,8 @@ body {
     }
     
     .btn-camera-switch {
-        top: max(58px, calc(env(safe-area-inset-top) + 48px));
-        right: 12px;
+        top: max(10px, env(safe-area-inset-top));
+        right: 10px;
         width: 40px;
         height: 40px;
     }
